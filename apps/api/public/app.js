@@ -10,6 +10,8 @@ const state = {
   chatSession: null,
   ob: null, // onboarding draft
   obStep: 0,
+  obActive: false,
+  csvResult: null,
 };
 
 // ---------- helpers ----------
@@ -17,7 +19,7 @@ async function api(path, options = {}) {
   const res = await fetch(path, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
       ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
       ...(options.headers ?? {}),
     },
@@ -78,7 +80,8 @@ function needsOnboarding() {
 function render() {
   const route = (location.hash.replace(/^#\//, "") || "home").split("?")[0];
   if (!state.token) return renderWelcome();
-  if (needsOnboarding()) { $tabbar.classList.add("hidden"); return renderOnboarding(); }
+  if (state.obActive) { $tabbar.classList.add("hidden"); return renderOnboarding(); }
+  if (needsOnboarding()) { state.obActive = true; $tabbar.classList.add("hidden"); return renderOnboarding(); }
   setTabbar(TABS, TABS.some((t) => t.id === route) ? route : "home");
   const views = { home: renderHome, plan: renderPlan, transactions: renderTransactions, insights: renderInsights, profile: renderProfile };
   (views[route] ?? renderHome)();
@@ -341,7 +344,7 @@ async function finishOnboarding() {
   document.getElementById("ob-next").disabled = true;
   try {
     await api("/v1/month-plans/generate", { method: "POST" });
-    state.ob = null; state.obStep = 0;
+    state.ob = null; state.obStep = 0; state.obActive = false;
     go("plan");
   } catch (e) {
     obError(e.message);
@@ -699,7 +702,7 @@ async function renderProfile() {
 
 function logout(clear) {
   if (clear) api("/v1/auth/logout", { method: "POST" }).catch(() => {});
-  state.token = null; state.profile = null; state.ob = null; state.obStep = 0;
+  state.token = null; state.profile = null; state.ob = null; state.obStep = 0; state.obActive = false; state.csvResult = null;
   localStorage.removeItem("token");
   go("home");
 }
