@@ -2,7 +2,7 @@
   "name": "salary-ai",
   "private": true,
   "version": "0.1.0",
-  "description": "Salary AI — a personal AI salary manager. Deterministic finance engine is the source of truth; the AI explains and acts on top of it.",
+  "description": "Salary AI \u2014 a personal AI salary manager. Deterministic finance engine is the source of truth; the AI explains and acts on top of it.",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -17,12 +17,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dev:api": "npm run dev -w @salary-ai/api",
-    "start:api": "npm run start -w @salary-ai/api"
+    "start:api": "npm run start -w @salary-ai/api",
+    "test:e2e": "cypress run",
+    "cypress:open": "cypress open"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
-    "typescript": "^5.7.0",
+    "cypress": "^16.0.0",
     "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
     "vitest": "^2.1.0"
   }
 }

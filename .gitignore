@@ -24,3 +24,8 @@ Thumbs.db
 # Local runtime state (in-memory store snapshots, logs)
 /var/
 *.log
+
+# Cypress runtime artifacts
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/

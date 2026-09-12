@@ -449,11 +449,15 @@ function subscribe() {
 
 // ---------- plan ----------
 async function renderPlan() {
-  let plan = await api("/v1/month-plans/current");
+  const wantDraft = location.hash.includes("draft=1");
+  let plan = await api(wantDraft ? "/v1/month-plans/latest" : "/v1/month-plans/current");
   let isNext = false;
   if (!plan) {
-    plan = await api("/v1/month-plans/latest"); // e.g. next-month draft after a rollover
-    isNext = plan != null;
+    plan = await api("/v1/month-plans/latest");
+  }
+  if (plan && plan.status === "draft") {
+    const current = await api("/v1/month-plans/current");
+    isNext = !current || current.id !== plan.id; // a draft for another period
   }
   const cur = state.profile.currency;
   if (!plan) {
@@ -569,15 +573,21 @@ async function renderTransactions() {
     if (!csv) return;
     try {
       const result = await api("/v1/imports/csv", { method: "POST", body: JSON.stringify({ csv }) });
-      document.getElementById("csv-result").innerHTML = `
-        <div class="note" style="margin-top:10px">✅ Imported ${result.created.length} · duplicates skipped: ${result.duplicates.length} · errors: ${result.errors.length}</div>
-        ${result.duplicates.map((d) => `<div class="warnbox">Row ${d.row}: ${esc(d.reason)}</div>`).join("")}
-        ${result.errors.map((er) => `<div class="warnbox">Row ${er.row}: ${esc(er.message)}</div>`).join("")}`;
-      if (result.created.length > 0) setTimeout(() => renderTransactions(), 1200);
+      state.csvResult = { result, csv };
+      renderTransactions();
     } catch (e) {
       document.getElementById("csv-result").innerHTML = `<div class="warnbox">${esc(e.message)}</div>`;
     }
   };
+  if (state.csvResult) {
+    const { result, csv } = state.csvResult;
+    state.csvResult = null;
+    document.getElementById("csv-text").value = csv;
+    document.getElementById("csv-result").innerHTML = `
+      <div class="note" style="margin-top:10px">✅ Imported ${result.created.length} · duplicates skipped: ${result.duplicates.length} · errors: ${result.errors.length}</div>
+      ${result.duplicates.map((d) => `<div class="warnbox">Row ${d.row}: ${esc(d.reason)}</div>`).join("")}
+      ${result.errors.map((er) => `<div class="warnbox">Row ${er.row}: ${esc(er.message)}</div>`).join("")}`;
+  }
 }
 
 // ---------- insights ----------
@@ -622,7 +632,7 @@ async function renderInsights() {
       btn.disabled = true; btn.textContent = "Planning…";
       const result = await api("/v1/month-plans/rollover", { method: "POST", body: JSON.stringify({}) });
       btn.textContent = `Draft plan for ${monthName(result.plan.period)} created ✓ — opening…`;
-      setTimeout(() => go("plan"), 900);
+      setTimeout(() => go("plan?draft=1"), 900);
     };
   }
 }

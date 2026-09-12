@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
 
 concurrency:
@@ -26,7 +25,40 @@ jobs:
       - name: Typecheck
         run: npx tsc -b --pretty
 
+      - name: Cypress typecheck
+        run: npx tsc -p cypress --noEmit
+
       - name: Unit tests (finance engine + domain)
         run: npm test
 
       # SAST/secret scanning join here before launch (04_ARCH §8 security baseline).
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies (incl. Cypress binary)
+        run: npm ci
+
+      - name: Run E2E tests against the dev API + demo client
+        uses: cypress-io/github-action@v6
+        with:
+          install: false
+          start: npm run dev:api
+          wait-on: "http://localhost:3000/health"
+          wait-on-timeout: 120
+          config: baseUrl=http://localhost:3000
+
+      - name: Upload screenshots on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore
