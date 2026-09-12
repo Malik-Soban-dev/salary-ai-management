@@ -155,7 +155,7 @@ export function registerCoreRoutes(app: FastifyInstance): void {
         note: "Approve this month's plan to get your exact safe-to-spend number.",
       };
     }
-    return sts;
+    return { estimated: false, ...sts };
   });
 
   // ---- Transactions -----------------------------------------------------------
