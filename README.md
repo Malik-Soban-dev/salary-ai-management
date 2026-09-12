@@ -75,6 +75,31 @@ authoritative; after expiry, gated routes return 402 until subscription).
 - **Draft → approve** — consequential actions are explicit state machines
 - **Data rights** — export and delete endpoints with an audit trail
 
+## E2E testing with Cypress
+
+Browser E2E tests live in `cypress/e2e/` and run against the dev API + demo
+client at `http://localhost:3000`:
+
+```bash
+npm run dev:api        # terminal 1
+npm run test:e2e       # terminal 2 — headless run (Electron)
+npm run cypress:open   # interactive runner
+```
+
+- `demo-journey.cy.ts` — the salary loop through the real UI: seed →
+  safe-to-spend hero → approved plan with protected money → text quick-add →
+  CSV import with duplicate flagging and re-import idempotency → grounded
+  assistant → month-end review → rollover to the next month's draft
+- `onboarding.cy.ts` — registration → 8-stage wizard → first plan approved;
+  a return visit skips the wizard
+- `api-contract.cy.ts` — trial entitlements, plan lifecycle totals,
+  safe-to-spend shape, auth 401s, health
+
+CI runs everything on every push (`.github/workflows/ci.yml`): a `verify` job
+(typecheck + 67 unit tests) and an `e2e` job (Cypress under xvfb against the
+dev server, failure diagnostics posted to the tracking issue, screenshots as
+artifacts).
+
 ## Test coverage
 
 `packages/finance-engine/test/` includes three intentionally different profiles
