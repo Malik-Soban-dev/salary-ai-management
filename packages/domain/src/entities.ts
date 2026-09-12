@@ -124,6 +124,8 @@ export interface Transaction {
   /** Classification confidence 0..1; corrections set 1 with source "manual". */
   confidence: number;
   recurringFlag?: boolean;
+  /** Hash of the import row — idempotency for CSV/receipt imports (04_ARCH §5). */
+  importIdempotencyKey?: string;
   notes?: string;
   createdAt: ISODateTime;
 }

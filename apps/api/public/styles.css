@@ -106,4 +106,8 @@ label { display: block; margin-top: 12px; font-size: 0.85rem; color: var(--text-
 .onboard h1 { font-size: 1.6rem; margin: 10px 0 6px; }
 .onboard p { color: var(--text-dim); max-width: 34ch; margin: 0 auto; }
 .notice-trial { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ob-progress { display: flex; gap: 6px; margin: 12px 0 16px; }
+.ob-progress span { flex: 1; height: 4px; border-radius: 99px; background: var(--surface-2); }
+.ob-progress span.on { background: var(--accent); }
+textarea { resize: vertical; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

@@ -68,3 +68,27 @@ provider integration passes compliance review.
 Timestamps stored in UTC; "today" is computed in the user's timezone at the
 service boundary (`apps/api/src/dates.ts`) so payday/month boundaries follow the
 user's calendar. The engine takes dates as explicit pure-function arguments.
+
+## 8. Month-end learning policy
+
+`learnCategoryWeights` (finance-engine) proposes gradual weight adjustments:
+`new = (1 − damping)·oldShare + damping·observedShare`, rescaled to the old
+weight sum. Defaults (`DEFAULT_LEARNING_POLICY`): damping 0.3, minimum weight
+0.25× the original mean, evidence threshold 4 categorized transactions in the
+period, material-change flag at ≥25% relative movement. Below the evidence
+threshold nothing changes. Proposals apply only via the explicit rollover
+endpoint (`POST /v1/month-plans/rollover`), are audit-logged, and are recorded
+on the generated plan as `adaptations` so the UI can always answer "why did my
+plan change?".
+
+## 9. CSV import rules
+
+`apps/api/src/services/imports.ts`: delimiters comma/semicolon/tab
+(auto-detected); header optional (detected by date/amount/description tokens,
+else columns assume date, amount, merchant); ISO dates preferred, day-first
+DD/MM/YYYY otherwise (flagged when ambiguous); amounts strip currency symbols,
+parentheses/minus treated as expense; category guessed by merchant keyword then
+optional category column. Idempotency: sha256(userId|date|amount|merchant)
+stored per transaction — re-imports skip exact rows. Probable duplicates (same
+date + amount + ≥60% token-containment merchant match) are flagged, not
+counted, and left for user confirmation.

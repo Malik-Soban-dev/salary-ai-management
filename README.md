@@ -59,7 +59,9 @@ authoritative; after expiry, gated routes return 402 until subscription).
 | `GET /v1/safe-to-spend` | the daily decision number (documented default) |
 | `POST /v1/transactions` · `GET` · `POST /parse` · `PATCH /:id` | capture + rule-based text/voice parser; corrections teach |
 | `GET/POST /v1/goals` | goals with engine projections |
-| `GET /v1/insights/monthly` | variance, emergency status, recurring forecast |
+| `GET /v1/insights/monthly` · `GET /v1/insights/month-end` | variance, emergency status, recurring forecast, learning preview |
+| `POST /v1/month-plans/rollover` | apply learning + generate next month's draft with `adaptations` provenance |
+| `POST /v1/imports/csv` | idempotent CSV import with duplicate flagging |
 | `GET /v1/billing/status` · `POST /checkout` · `POST /webhook` | trial → subscription entitlements |
 | `POST /v1/ai/sessions` · `/:id/messages` | grounded assistant (tool calls + typed recommendation) |
 
@@ -77,5 +79,10 @@ authoritative; after expiry, gated routes return 402 until subscription).
 
 `packages/finance-engine/test/` includes three intentionally different profiles
 (PKR salaried with family support, USD variable-income freelancer, JPY
-zero-decimal minimal saver) plus scarcity behavior: income below essentials,
-lifestyle-floor unwinding, emergency caps and goal underfunding warnings.
+zero-decimal minimal saver), scarcity behavior (income below essentials,
+lifestyle-floor unwinding, emergency caps, goal underfunding), the learning
+loop (evidence gating, damping, floors), CSV import (idempotency, duplicate
+flagging, per-row errors) and the LLM tool loop (scripted fake fetch: tool
+round-trips, argument validation, guardrail fallback — no network access).
+
+Total: 67 deterministic tests, no network or clock dependencies.

@@ -12,8 +12,7 @@ export function currentPeriod(today: string): PlanPeriod {
   return periodOf(today);
 }
 
-export function generatePlan(profile: FinancialProfile, today: string): MonthlyPlan {
-  const period = currentPeriod(today);
+export function generatePlan(profile: FinancialProfile, today: string, period: PlanPeriod = currentPeriod(today)): MonthlyPlan {
   const plan = calculateMonthPlan({
     period,
     currency: profile.currency,

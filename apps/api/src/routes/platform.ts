@@ -1,7 +1,7 @@
 /** Platform routes: billing (trial → subscription), AI assistant, demo seeder. */
 import type { FastifyInstance } from "fastify";
 import { createHmac, randomUUID, randomBytes } from "node:crypto";
-import { aiMessageSchema } from "@salary-ai/schemas";
+import { aiMessageSchema, rolloverSchema } from "@salary-ai/schemas";
 import { activateSubscription, getEntitlement, startTrial, TRIAL_DAYS } from "../billing.js";
 import { emptyProfile, store } from "../store.js";
 import type { AuthedRequest } from "../hooks.js";
@@ -11,6 +11,7 @@ import { audit } from "../audit.js";
 import { todayInUserTz } from "../dates.js";
 import { applyProfileUpdate, approvePlan, generatePlan } from "../services/planService.js";
 import { createTransaction } from "../services/ledgerService.js";
+import { monthEndPreview, rolloverToNextPeriod } from "../services/learningService.js";
 import { demoSeedData } from "../demoSeed.js";
 
 export function registerPlatformRoutes(app: FastifyInstance): void {
@@ -65,7 +66,7 @@ export function registerPlatformRoutes(app: FastifyInstance): void {
     }
     const body = aiMessageSchema.parse(request.body);
     const profile = store.profiles.get(request.userId!)!;
-    const result = runAssistantTurn(request.userId!, body.text, todayInUserTz(profile.locale.timezone));
+    const result = await runAssistantTurn(request.userId!, body.text, todayInUserTz(profile.locale.timezone));
     if ("error" in result) return reply.code(400).send(result);
     session.messages.push({ role: "user", text: body.text, at: new Date().toISOString() });
     session.messages.push({
@@ -76,6 +77,18 @@ export function registerPlatformRoutes(app: FastifyInstance): void {
       at: new Date().toISOString(),
     });
     return result;
+  });
+
+  app.get("/v1/insights/month-end", async (request: AuthedRequest) => {
+    const profile = store.profiles.get(request.userId!)!;
+    return monthEndPreview(profile, todayInUserTz(profile.locale.timezone));
+  });
+
+  app.post("/v1/month-plans/rollover", async (request: AuthedRequest) => {
+    const profile = store.profiles.get(request.userId!)!;
+    const body = rolloverSchema.parse(request.body ?? {});
+    const today = todayInUserTz(profile.locale.timezone);
+    return rolloverToNextPeriod(profile, today, body.period);
   });
 
   app.get("/v1/ai/sessions/:id", async (request: AuthedRequest, reply) => {

@@ -107,3 +107,16 @@ export const profileUpdateSchema = z.object({
 export const aiMessageSchema = z.object({
   text: z.string().min(1).max(2000),
 });
+
+export const csvImportSchema = z.object({
+  csv: z.string().min(1).max(2_000_000),
+});
+
+export const rolloverSchema = z.object({
+  period: z
+    .object({
+      year: z.number().int().min(2000).max(2100),
+      month: z.number().int().min(1).max(12),
+    })
+    .optional(),
+});

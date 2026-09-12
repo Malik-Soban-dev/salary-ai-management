@@ -5,6 +5,7 @@ import type { FastifyInstance } from "fastify";
 import { moneyFromMajor } from "@salary-ai/domain";
 import { periodOf, projectGoal } from "@salary-ai/finance-engine";
 import {
+  csvImportSchema,
   goalCreateSchema,
   loginRequestSchema,
   profileUpdateSchema,
@@ -12,6 +13,7 @@ import {
   transactionCreateSchema,
   transactionParseSchema,
 } from "@salary-ai/schemas";
+import { importCsv } from "../services/imports.js";
 import { createSession, hashPassword, verifyPassword } from "../auth.js";
 import { getEntitlement, startTrial } from "../billing.js";
 import { emptyProfile, store } from "../store.js";
@@ -115,6 +117,14 @@ export function registerCoreRoutes(app: FastifyInstance): void {
     return store.currentPlan(request.userId!, periodOf(todayInUserTz(profile.locale.timezone))) ?? null;
   });
 
+  app.get("/v1/month-plans/latest", async (request: AuthedRequest) => {
+    return (
+      [...store.plansOf(request.userId!)].sort(
+        (a, b) => b.period.year - a.period.year || b.period.month - a.period.month || b.createdAt.localeCompare(a.createdAt),
+      )[0] ?? null
+    );
+  });
+
   app.post("/v1/month-plans/:id/approve", async (request: AuthedRequest, reply) => {
     const userId = request.userId!;
     const { id } = request.params as { id: string };
@@ -168,6 +178,19 @@ export function registerCoreRoutes(app: FastifyInstance): void {
     const profile = store.profiles.get(request.userId!)!;
     const body = transactionParseSchema.parse(request.body);
     return parseTransactionText(body.text, todayInUserTz(profile.locale.timezone));
+  });
+
+  app.post("/v1/imports/csv", async (request: AuthedRequest) => {
+    const profile = store.profiles.get(request.userId!)!;
+    const body = csvImportSchema.parse(request.body);
+    const today = todayInUserTz(profile.locale.timezone);
+    const result = importCsv(profile, store.transactionsOf(request.userId!), body.csv, today);
+    audit(request.userId!, "data.csv_imported", {
+      created: result.created.length,
+      duplicates: result.duplicates.length,
+      errors: result.errors.length,
+    });
+    return result;
   });
 
   app.patch("/v1/transactions/:id", async (request: AuthedRequest, reply) => {

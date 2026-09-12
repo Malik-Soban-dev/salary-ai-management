@@ -30,7 +30,7 @@ export interface ParsedDraft {
  *   "yesterday 250 coffee"         → 250 • dining, yesterday
  * Roman Urdu keywords are part of the seed table; the table is configuration.
  */
-const KEYWORD_CATEGORIES: Array<{ categoryId: string; keywords: string[] }> = [
+export const KEYWORD_CATEGORIES: Array<{ categoryId: string; keywords: string[] }> = [
   { categoryId: "cat-groceries", keywords: ["grocery", "groceries", "supermarket", "sabzi", "kirana"] },
   { categoryId: "cat-transport", keywords: ["petrol", "fuel", "gas", "uber", "careem", "bus", "train", "taxi", "metro"] },
   { categoryId: "cat-dining", keywords: ["dinner", "lunch", "breakfast", "coffee", "restaurant", "cafe", "chai", "food"] },
@@ -97,6 +97,7 @@ export function createTransaction(
     source: Transaction["source"];
     notes?: string;
     confidence?: number;
+    importIdempotencyKey?: string;
   },
   today: string,
 ): Transaction {
@@ -111,6 +112,7 @@ export function createTransaction(
     categoryId: input.categoryId,
     source: input.source,
     confidence: input.confidence ?? 1,
+    importIdempotencyKey: input.importIdempotencyKey,
     notes: input.notes,
     createdAt: new Date().toISOString(),
   };

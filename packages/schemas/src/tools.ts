@@ -92,3 +92,111 @@ export function parseToolCall(name: string, args: unknown):
   }
   return { ok: true, name: name as ToolName, arguments: parsed.data };
 }
+
+/**
+ * OpenAI function-calling definitions. These mirror `toolSchemas` (zod remains
+ * the runtime validator on every call — a mismatch fails validation safely).
+ * Keep both in sync; `TOOL_JSON_SCHEMA_STALE` is guarded by a unit test on the
+ * tool-name list.
+ */
+const periodJson = {
+  type: "object" as const,
+  properties: { year: { type: "integer" }, month: { type: "integer", minimum: 1, maximum: 12 } },
+  required: ["year", "month"],
+};
+
+export const toolJsonSchemas: Record<ToolName, { description: string; parameters: Record<string, unknown> }> = {
+  get_month_plan: {
+    description: "Get the user's monthly salary plan (allocations, totals, warnings) for a period; defaults to the current period.",
+    parameters: {
+      type: "object",
+      properties: { period: periodJson },
+    },
+  },
+  get_safe_to_spend: {
+    description: "Get the current safe-to-spend number: remaining flexible money, reserved obligations, daily recommendation.",
+    parameters: { type: "object", properties: {} },
+  },
+  get_category_status: {
+    description: "Get planned vs actual for one spending category this period.",
+    parameters: {
+      type: "object",
+      properties: { categoryId: { type: "string" }, period: periodJson },
+      required: ["categoryId"],
+    },
+  },
+  list_upcoming_obligations: {
+    description: "List upcoming essential obligations (bills, rent, commitments) with amounts and due days.",
+    parameters: {
+      type: "object",
+      properties: { withinDays: { type: "integer", minimum: 1, maximum: 60, default: 14 } },
+    },
+  },
+  get_goal_projection: {
+    description: "Get a goal's required monthly pace, projected completion and on-track status.",
+    parameters: {
+      type: "object",
+      properties: { goalId: { type: "string" } },
+      required: ["goalId"],
+    },
+  },
+  search_transactions: {
+    description: "Search the user's recent transactions by text and/or category.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", maxLength: 200, default: "" },
+        categoryId: { type: "string" },
+        limit: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+      },
+    },
+  },
+  classify_transaction: {
+    description: "Parse free text (e.g. 'Spent 950 on dinner') into a structured transaction draft with category guess and confidence.",
+    parameters: {
+      type: "object",
+      properties: { text: { type: "string", minLength: 1, maxLength: 500 } },
+      required: ["text"],
+    },
+  },
+  propose_budget_adjustment: {
+    description: "Propose changing a category's planned monthly budget. Creates a draft for user approval; does not apply it.",
+    parameters: {
+      type: "object",
+      properties: {
+        categoryId: { type: "string" },
+        newPlannedMinor: { type: "integer", minimum: 0 },
+        reason: { type: "string", minLength: 1, maxLength: 500 },
+      },
+      required: ["categoryId", "newPlannedMinor", "reason"],
+    },
+  },
+  create_goal_draft: {
+    description: "Draft a new savings goal for user approval; does not create it.",
+    parameters: {
+      type: "object",
+      properties: {
+        name: { type: "string", maxLength: 80 },
+        targetAmountMinor: { type: "integer", minimum: 1 },
+        targetDate: { type: "string", pattern: "^\\d{4}-\\d{2}(-\\d{2})?$" },
+        priority: { type: "integer", minimum: 1, maximum: 9, default: 3 },
+      },
+      required: ["name", "targetAmountMinor"],
+    },
+  },
+  create_plan_draft: {
+    description: "Draft a regenerated monthly plan for user approval; does not apply it.",
+    parameters: {
+      type: "object",
+      properties: { period: periodJson, reason: { type: "string", maxLength: 500 } },
+      required: ["period"],
+    },
+  },
+};
+
+export function openAiToolsDefinition() {
+  return TOOL_NAMES.map((name) => ({
+    type: "function" as const,
+    function: { name, ...toolJsonSchemas[name] },
+  }));
+}

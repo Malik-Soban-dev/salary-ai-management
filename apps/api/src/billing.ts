@@ -81,4 +81,5 @@ export const GATED_FEATURE_PREFIXES = [
   "/v1/goals",
   "/v1/insights",
   "/v1/ai",
+  "/v1/imports",
 ];

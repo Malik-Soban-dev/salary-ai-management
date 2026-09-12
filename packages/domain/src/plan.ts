@@ -59,6 +59,17 @@ export interface PlanWarning {
   refId?: string;
 }
 
+/** Behavioral adaptation applied from the learning loop when this plan was generated. */
+export interface PlanAdaptation {
+  categoryId: string;
+  name: string;
+  fromWeight: number;
+  toWeight: number;
+  reason: string;
+  /** True when the weight moved ≥ the material-change threshold — always surfaced to the user. */
+  material: boolean;
+}
+
 export interface MonthlyPlan {
   id: string;
   userId: string;
@@ -74,6 +85,8 @@ export interface MonthlyPlan {
   };
   totals: PlanTotals;
   warnings: PlanWarning[];
+  /** Learning-loop provenance: what changed vs the previous plan and why (01_PRD rule 5). */
+  adaptations?: PlanAdaptation[];
   calculationVersion: string;
   /** Hash of the exact engine inputs — reproducibility requirement (01_PRD rule 4). */
   inputsHash: string;

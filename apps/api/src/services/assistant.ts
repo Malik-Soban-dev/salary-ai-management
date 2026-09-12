@@ -32,7 +32,7 @@ export interface AssistantTurnResult {
 
 export interface AiProvider {
   readonly name: string;
-  respond(input: AssistantTurnInput): AssistantTurnResult;
+  respond(input: AssistantTurnInput): AssistantTurnResult | Promise<AssistantTurnResult>;
 }
 
 // ---------------------------------------------------------------------------
@@ -221,27 +221,14 @@ function formatMoneyFromMajor(major: number, currency: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// OpenAI-compatible adapter seam (not active without credentials).
+// OpenAI-compatible adapter (services/llm.ts): real tool loop against the typed
+// tool contract, structured-output validation, fallback to the grounded local
+// provider on any failure. Inactive without AI_BASE_URL/AI_API_KEY/AI_MODEL.
 // ---------------------------------------------------------------------------
 
-export class OpenAICompatibleProvider implements AiProvider {
-  readonly name = "openai-compatible";
-  constructor(
-    private readonly baseUrl: string,
-    private readonly apiKey: string,
-    private readonly model: string,
-    private readonly fallback: AiProvider,
-  ) {}
-
-  respond(input: AssistantTurnInput): AssistantTurnResult {
-    // Wiring this provider requires: tool-loop against the typed tool contract,
-    // structured-output validation via validateRecommendation(), and eval
-    // fixtures (08_BUILD: "WHEN ASKED TO IMPLEMENT AI"). Until reviewed, the
-    // grounded local provider answers — the core app never depends on the LLM.
-    void this.baseUrl; void this.apiKey; void this.model;
-    return this.fallback.respond(input);
-  }
-}
+export { OpenAiCompatibleProvider } from "./llm.js";
+import { OpenAiCompatibleProvider } from "./llm.js";
+export { SYSTEM_PROMPT, PROMPT_VERSION } from "./llm.js";
 
 /** Provider selection at startup: env-configured LLM if present, local otherwise. */
 export function selectProvider(): AiProvider {
@@ -249,17 +236,19 @@ export function selectProvider(): AiProvider {
   const baseUrl = process.env.AI_BASE_URL;
   const apiKey = process.env.AI_API_KEY;
   const model = process.env.AI_MODEL;
-  if (baseUrl && apiKey && model) return new OpenAICompatibleProvider(baseUrl, apiKey, model, local);
+  if (baseUrl && apiKey && model) {
+    return new OpenAiCompatibleProvider({ baseUrl, apiKey, model, fallback: local });
+  }
   return local;
 }
 
 export const aiProvider: AiProvider = selectProvider();
 
-export function runAssistantTurn(userId: string, text: string, today: string): AssistantTurnResult | { error: string } {
+export async function runAssistantTurn(userId: string, text: string, today: string): Promise<AssistantTurnResult | { error: string }> {
   const profile = store.profiles.get(userId);
   if (!profile) return { error: "Profile not found." };
   const period = periodOf(today);
-  const result = aiProvider.respond({ profile, text, today, period });
+  const result = await aiProvider.respond({ profile, text, today, period });
   const checked = validateRecommendation(result.recommendation);
   if (!checked.ok) {
     // Guardrail: broken model output never reaches the UI.
