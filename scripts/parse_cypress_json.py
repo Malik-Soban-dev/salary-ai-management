@@ -69,7 +69,7 @@ def main() -> None:
         return
 
     data = None
-    start = raw.find('{"runs"')
+    start = raw.find("{")
     if start >= 0:
         try:
             data, _ = json.JSONDecoder().raw_decode(raw[start:])
