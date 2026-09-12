@@ -89,11 +89,21 @@ def main() -> None:
 
     failures: list = []
     passed: list = []
-    collect_from_runs(data, failures, passed)
-    if not failures and not passed:
-        # Some reporter versions nest under runs[].suites[]
-        for run in data.get("runs", []):
-            for suite in run.get("suites", []):
+    if "runs" in data:
+        collect_from_runs(data, failures, passed)
+        if not failures and not passed:
+            for run in data.get("runs", []):
+                for suite in run.get("suites", []):
+                    walk_suites(suite, failures, passed)
+    else:
+        # Mocha JSON reporter (`--reporter json`): top-level failures/passes arrays.
+        for f in data.get("failures", []):
+            err = f.get("err") or {}
+            failures.append((f.get("fullTitle") or f.get("title") or "unknown", str(err.get("message") or "unknown error")[:400]))
+        for p_ in data.get("passes", []):
+            passed.append(p_.get("fullTitle") or p_.get("title") or "passed")
+        if not failures and not passed:
+            for suite in data.get("suites", []):
                 walk_suites(suite, failures, passed)
 
     print(f"SUMMARY passed={len(passed)} failed={len(failures)}")

@@ -82,6 +82,9 @@ jobs:
             echo "## Cypress diagnostics — run ${{ github.run_id }} (${GITHUB_SHA::7})"
             echo
             echo '```text'
+            echo "=== parser summary ==="
+            python3 scripts/parse_cypress_json.py /tmp/cypress.json 2>&1 | head -40 || true
+            echo
             echo "=== /tmp/cypress.err (first 3KB) ==="
             tr -d '\000' < /tmp/cypress.err | head -c 3000 || true
             echo
