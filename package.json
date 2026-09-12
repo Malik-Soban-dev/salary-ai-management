@@ -20,7 +20,8 @@
     "start:api": "npm run start -w @salary-ai/api",
     "test:e2e": "cypress run",
     "cypress:open": "cypress open",
-    "build:standalone": "esbuild apps/demo-standalone/entry.ts --bundle --format=iife --global-name=SAIEngine --alias:node:crypto=./apps/demo-standalone/sha256-shim.ts --outfile=apps/demo-standalone/engine.bundle.js"
+    "build:standalone": "esbuild apps/demo-standalone/entry.ts --bundle --format=iife --global-name=SAIEngine --alias:node:crypto=./apps/demo-standalone/sha256-shim.ts --outfile=apps/demo-standalone/engine.bundle.js",
+    "build:demo": "npm run build:standalone && node scripts/build_demo.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
