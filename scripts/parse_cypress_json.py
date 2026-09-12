@@ -52,7 +52,8 @@ def main() -> None:
         print(f"SUMMARY parse=fallback failed={len(msgs)}")
         for i, m in enumerate(msgs[:10]):
             title = titles[i] if i < len(titles) else f"failure {i + 1}"
-            print(f"::error title={esc(title)[:120]}::{esc(m.replace('\\n', ' ')[:500])}")
+            flat = m.replace("\n", " ")[:500]
+            print(f"::error title={esc(title)[:120]}::{esc(flat)}")
         return
 
     failures: list = []
