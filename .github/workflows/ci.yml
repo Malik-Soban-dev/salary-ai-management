@@ -46,19 +46,32 @@ jobs:
       - name: Install dependencies (incl. Cypress binary)
         run: npm ci
 
-      - name: Run E2E tests against the dev API + demo client
-        uses: cypress-io/github-action@v6
-        with:
-          install: false
-          start: npm run dev:api
-          wait-on: "http://localhost:3000/health"
-          wait-on-timeout: 120
-          config: baseUrl=http://localhost:3000
+      - name: Start API + demo client
+        run: |
+          npm run dev:api > /tmp/api.log 2>&1 &
+          npx --yes wait-on http://localhost:3000/health --timeout 90000
+          cat /tmp/api.log
 
-      - name: Upload screenshots on failure
+      - name: Run Cypress (JSON reporter)
+        id: cypress
+        run: |
+          set +e
+          npx cypress run --reporter json > /tmp/cypress.json 2>/tmp/cypress.err
+          code=$?
+          echo "cypress exit code: $code"
+          python3 scripts/parse_cypress_json.py /tmp/cypress.json || true
+          # Keep raw output for the summary even when the run passes
+          tail -c 2000 /tmp/cypress.err || true
+          test "$code" -eq 0
+
+      - name: Upload failure screenshots
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-screenshots
           path: cypress/screenshots
           if-no-files-found: ignore
+
+      - name: Dump API log on failure
+        if: failure()
+        run: tail -100 /tmp/api.log
