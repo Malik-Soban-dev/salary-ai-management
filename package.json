@@ -19,7 +19,8 @@
     "dev:api": "npm run dev -w @salary-ai/api",
     "start:api": "npm run start -w @salary-ai/api",
     "test:e2e": "cypress run",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "build:standalone": "esbuild apps/demo-standalone/entry.ts --bundle --format=iife --global-name=SAIEngine --alias:node:crypto=./apps/demo-standalone/sha256-shim.ts --outfile=apps/demo-standalone/engine.bundle.js"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
