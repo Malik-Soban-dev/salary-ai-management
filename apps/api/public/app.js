@@ -61,7 +61,14 @@ const TABS = [
   { id: "profile", label: "Profile", icon: "☺" },
 ];
 
-function go(tab) { location.hash = `#/${tab}`; render(); }
+function go(tab) {
+  const target = `#/${tab}`;
+  if (location.hash === target) {
+    render(); // same hash → hashchange won't fire
+  } else {
+    location.hash = target; // hashchange listener renders exactly once
+  }
+}
 
 // ---------- routing ----------
 function needsOnboarding() {

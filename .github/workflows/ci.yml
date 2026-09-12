@@ -8,6 +8,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -68,6 +72,30 @@ jobs:
             echo "::error title=cypress-stderr::$(tail -c 350 /tmp/cypress.err | tr '\n' ' ')"
           fi
           test "$code" -eq 0
+
+      - name: Post diagnostics to tracking issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## Cypress diagnostics — run ${{ github.run_id }} (${GITHUB_SHA::7})"
+            echo
+            echo '```text'
+            echo "=== /tmp/cypress.err (first 3KB) ==="
+            tr -d '\000' < /tmp/cypress.err | head -c 3000 || true
+            echo
+            echo "=== /tmp/parse.err (first 3KB) ==="
+            head -c 3000 /tmp/parse.err 2>/dev/null || true
+            echo
+            echo "=== /tmp/cypress.json (first 60KB) ==="
+            head -c 60000 /tmp/cypress.json 2>/dev/null || echo "(missing)"
+            echo
+            echo "=== /tmp/api.log (last 3KB) ==="
+            tail -c 3000 /tmp/api.log || true
+            echo '```'
+          } > /tmp/body.md
+          gh issue comment 1 --repo "$GITHUB_REPOSITORY" --body-file /tmp/body.md
 
       - name: Upload failure screenshots
         uses: actions/upload-artifact@v4
