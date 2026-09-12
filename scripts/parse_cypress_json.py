@@ -31,10 +31,29 @@ def walk_suite(suite: dict, failures: list, passed: list):
 
 
 def main() -> None:
-    raw = open(sys.argv[1]).read()
-    # The JSON reporter prints one JSON document; find it defensively.
+    raw = open(sys.argv[1]).read() if len(sys.argv) > 1 else ""
+    if not raw.strip():
+        print("::error title=cypress-json::Output file empty or missing")
+        return
+    # The JSON reporter prints one JSON document; tolerate surrounding noise.
+    data = None
     start = raw.find('{"runs"')
-    data = json.loads(raw[start:]) if start >= 0 else json.loads(raw)
+    if start >= 0:
+        try:
+            data, _ = json.JSONDecoder().raw_decode(raw[start:])
+        except Exception as e:
+            data = None
+            print(f"::warning title=parser::raw_decode failed: {e}")
+    if data is None:
+        # Regex fallback: pull failure messages out of the raw output.
+        import re
+        msgs = re.findall(r'"state"\s*:\s*"failed".{0,800}?"message"\s*:\s*"(.*?)(?<!\\)"', raw, re.S)
+        titles = re.findall(r'"fullTitle"\s*:\s*"(.{0,200}?)"', raw)
+        print(f"SUMMARY parse=fallback failed={len(msgs)}")
+        for i, m in enumerate(msgs[:10]):
+            title = titles[i] if i < len(titles) else f"failure {i + 1}"
+            print(f"::error title={esc(title)[:120]}::{esc(m.replace('\\n', ' ')[:500])}")
+        return
 
     failures: list = []
     passed: list = []

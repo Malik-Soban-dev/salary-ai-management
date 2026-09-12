@@ -52,16 +52,21 @@ jobs:
           npx --yes wait-on http://localhost:3000/health --timeout 90000
           cat /tmp/api.log
 
-      - name: Run Cypress (JSON reporter)
+      - name: Run Cypress (JSON reporter under xvfb)
         id: cypress
         run: |
           set +e
-          npx cypress run --reporter json > /tmp/cypress.json 2>/tmp/cypress.err
+          xvfb-run -a npx cypress run --reporter json > /tmp/cypress.json 2>/tmp/cypress.err
           code=$?
           echo "cypress exit code: $code"
-          python3 scripts/parse_cypress_json.py /tmp/cypress.json || true
-          # Keep raw output for the summary even when the run passes
-          tail -c 2000 /tmp/cypress.err || true
+          python3 scripts/parse_cypress_json.py /tmp/cypress.json 2>/tmp/parse.err || true
+          if [ -s /tmp/parse.err ]; then
+            echo "::error title=parser::$(head -c 250 /tmp/parse.err | tr '\n' ' ')"
+          fi
+          if [ "$code" -ne 0 ]; then
+            echo "::error title=cypress-exit::$code"
+            echo "::error title=cypress-stderr::$(tail -c 350 /tmp/cypress.err | tr '\n' ' ')"
+          fi
           test "$code" -eq 0
 
       - name: Upload failure screenshots
@@ -72,6 +77,6 @@ jobs:
           path: cypress/screenshots
           if-no-files-found: ignore
 
-      - name: Dump API log on failure
+      - name: Report API log tail on failure
         if: failure()
-        run: tail -100 /tmp/api.log
+        run: echo "::error title=api-log-tail::$(tail -c 400 /tmp/api.log | tr '\n' ' ')"
