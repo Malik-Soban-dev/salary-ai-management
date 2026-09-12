@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+build/
+*.tsbuildinfo
+
+# Test / coverage
+coverage/
+
+# Environment and secrets — never commit (see docs/architecture/security.md)
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Extracted handoff archives (source docs stay in the tracked zip)
+/extracted/
+
+# Local runtime state (in-memory store snapshots, logs)
+/var/
+*.log

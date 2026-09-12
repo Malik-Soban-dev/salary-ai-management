@@ -1,0 +1,28 @@
+{
+  "name": "salary-ai",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Salary AI — a personal AI salary manager. Deterministic finance engine is the source of truth; the AI explains and acts on top of it.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev:api": "npm run dev -w @salary-ai/api",
+    "start:api": "npm run start -w @salary-ai/api"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0",
+    "vitest": "^2.1.0"
+  }
+}

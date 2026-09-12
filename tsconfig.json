@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/domain" },
+    { "path": "packages/finance-engine" },
+    { "path": "packages/schemas" },
+    { "path": "apps/api" }
+  ]
+}

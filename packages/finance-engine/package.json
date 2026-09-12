@@ -1,0 +1,22 @@
+{
+  "name": "@salary-ai/finance-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./period": "./src/period.ts",
+    "./plan": "./src/monthPlan.ts",
+    "./safe-to-spend": "./src/safeToSpend.ts",
+    "./variance": "./src/variance.ts",
+    "./emergency": "./src/emergencyFund.ts",
+    "./goals": "./src/goalProjection.ts",
+    "./recurring": "./src/recurringForecast.ts"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@salary-ai/domain": "*"
+  }
+}

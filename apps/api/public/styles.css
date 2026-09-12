@@ -1,0 +1,109 @@
+/* Salary AI demo client — calm, dark-first, numbers first. One decision per screen. */
+:root {
+  --bg: #0e1116;
+  --surface: #161b23;
+  --surface-2: #1d242e;
+  --border: #2a3340;
+  --text: #e8edf4;
+  --text-dim: #94a3b8;
+  --accent: #4ade80;
+  --accent-dim: #22c55e22;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --blue: #60a5fa;
+  --radius: 16px;
+  font-size: 16px;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef1f5; --border: #dde3ea;
+    --text: #10151c; --text-dim: #5b6878; --accent: #16a34a; --accent-dim: #16a34a18;
+  }
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.45; padding-bottom: 76px;
+  -webkit-font-smoothing: antialiased;
+}
+#app { max-width: 520px; margin: 0 auto; padding: 20px 16px 24px; }
+.boot { color: var(--text-dim); text-align: center; padding: 48px 0; }
+.hidden { display: none !important; }
+
+h1 { font-size: 1.35rem; letter-spacing: -0.01em; margin-bottom: 4px; }
+h2 { font-size: 1.02rem; margin-bottom: 10px; }
+.sub { color: var(--text-dim); font-size: 0.88rem; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-top: 14px;
+}
+.card h2 { color: var(--text-dim); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.num { font-variant-numeric: tabular-nums; }
+
+.hero { text-align: left; background: linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%); }
+.hero .amount { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+.hero .amount.zero { color: var(--amber); }
+.hero .perday { color: var(--text-dim); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.badge {
+  display: inline-block; font-size: 0.72rem; padding: 3px 10px; border-radius: 999px;
+  background: var(--accent-dim); color: var(--accent); border: 1px solid transparent; font-weight: 600;
+}
+.badge.warn { background: #fbbf2422; color: var(--amber); }
+.badge.red { background: #f8717122; color: var(--red); }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 0; }
+.row + .row { border-top: 1px solid var(--border); }
+.row .label { color: var(--text); font-size: 0.92rem; }
+.row .label small { display: block; color: var(--text-dim); font-size: 0.76rem; }
+.row .value { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.row .value.dim { color: var(--text-dim); font-weight: 400; }
+.value.pos { color: var(--accent); } .value.neg { color: var(--red); } .value.warn { color: var(--amber); }
+
+.bar { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin: 8px 0 4px; }
+.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
+.bar > span.warn { background: var(--amber); } .bar > span.red { background: var(--red); }
+
+button {
+  font: inherit; cursor: pointer; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text); padding: 10px 16px; font-weight: 600;
+  transition: filter .15s ease, transform .05s ease;
+}
+button:hover { filter: brightness(1.12); } button:active { transform: scale(.98); }
+button.primary { background: var(--accent); border-color: transparent; color: #06220f; }
+button.wide { width: 100%; margin-top: 12px; }
+button.ghost { background: transparent; }
+button:disabled { opacity: .5; cursor: default; }
+input, select {
+  font: inherit; width: 100%; padding: 11px 12px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text); margin-top: 6px;
+}
+label { display: block; margin-top: 12px; font-size: 0.85rem; color: var(--text-dim); font-weight: 600; }
+
+.actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.actions button { padding: 12px 6px; font-size: 0.85rem; }
+.insight { border-left: 3px solid var(--blue); padding-left: 12px; color: var(--text); font-size: 0.92rem; }
+.note { color: var(--text-dim); font-size: 0.8rem; margin-top: 10px; }
+.warnbox { border: 1px solid #fbbf2455; background: #fbbf2411; border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: 0.85rem; color: var(--amber); }
+.pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.pill { font-size: 0.75rem; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-dim); }
+
+.tabbar {
+  position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; gap: 2px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border); padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+}
+.tabbar button { background: none; border: none; color: var(--text-dim); font-size: 0.72rem; font-weight: 600; padding: 6px 10px; border-radius: 10px; }
+.tabbar button.active { color: var(--accent); background: var(--accent-dim); }
+.chatlog { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.msg { max-width: 85%; padding: 10px 13px; border-radius: 14px; font-size: 0.92rem; }
+.msg.user { align-self: flex-end; background: var(--surface-2); }
+.msg.ai { align-self: flex-start; background: var(--accent-dim); border: 1px solid var(--border); }
+.msg.ai .meta { color: var(--text-dim); font-size: 0.7rem; margin-top: 6px; }
+.onboard { text-align: center; padding-top: 8vh; }
+.onboard .logo { font-size: 2.6rem; }
+.onboard h1 { font-size: 1.6rem; margin: 10px 0 6px; }
+.onboard p { color: var(--text-dim); max-width: 34ch; margin: 0 auto; }
+.notice-trial { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
