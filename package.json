@@ -9,7 +9,7 @@
   },
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/api"
   ],
   "scripts": {
     "build": "tsc -b",

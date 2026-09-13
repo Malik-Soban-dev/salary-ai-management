@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Salary AI",
+    "slug": "salary-ai",
+    "scheme": "salaryai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0e1116",
+    "splash": {
+      "backgroundColor": "#0e1116",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "bundleIdentifier": "com.salaryai.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Capture receipts to log expenses (coming soon)."
+      }
+    },
+    "android": {
+      "package": "com.salaryai.app",
+      "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "pan"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "PLACEHOLDER_RUN_EAS_INIT"
+      }
+    }
+  }
+}
