@@ -1,0 +1,25 @@
+# Render Blueprint — deploy the Salary AI API + web client.
+# Render → New → Blueprint → point at this repo/branch → Apply.
+# Docs: infra/DEPLOY.md
+services:
+  - type: web
+    name: salary-ai-api
+    runtime: docker
+    dockerfilePath: ./infra/Dockerfile
+    plan: starter          # smallest paid plan; free tier has no persistent disk
+    healthCheckPath: /health
+    envVars:
+      - key: DATA_DIR
+        value: /data       # enables snapshot persistence on the disk below
+      - key: LOG_LEVEL
+        value: info
+      - key: AI_BASE_URL   # optional — set sync:false and fill in the dashboard
+        sync: false
+      - key: AI_API_KEY    # optional — the real-AI upgrade, server-side only
+        sync: false
+      - key: AI_MODEL
+        sync: false
+    disk:
+      name: salary-ai-data
+      mountPath: /data
+      sizeGB: 1

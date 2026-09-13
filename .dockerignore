@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.git
+.github
+cypress
+docs
+extracted
+scripts
+apps/demo-standalone
+apps/mobile
+*.md
+!README.md

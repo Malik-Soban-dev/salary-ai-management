@@ -110,4 +110,21 @@ loop (evidence gating, damping, floors), CSV import (idempotency, duplicate
 flagging, per-row errors) and the LLM tool loop (scripted fake fetch: tool
 round-trips, argument validation, guardrail fallback — no network access).
 
-Total: 67 deterministic tests, no network or clock dependencies.
+Total: 70 deterministic tests, no network or clock dependencies.
+
+## Ship it — mobile apps, deployment, real AI
+
+| Step | Where | Time |
+|---|---|---|
+| Deploy the backend (Docker, one service + disk) | [`infra/DEPLOY.md`](infra/DEPLOY.md) | ~10 min |
+| Turn the real AI assistant on (server env only) | [`infra/DEPLOY.md`](infra/DEPLOY.md) §2 | ~5 min |
+| Build for Google Play & App Store (EAS cloud builds) | [`infra/DEPLOY.md`](infra/DEPLOY.md) §3–4, [`apps/mobile/README.md`](apps/mobile/README.md) | ~30 min each |
+| Store listing copy, data-safety answers, review notes | [`docs/store-listing.md`](docs/store-listing.md) | paste-ready |
+| Privacy policy (serve via GitHub Pages) | [`docs/privacy-policy.html`](docs/privacy-policy.html) | done, add your email |
+
+The mobile app (`apps/mobile/`) is an Expo/React Native client of the same API
+— the deterministic engine and the AI key stay server-side, so store builds
+never carry money math or secrets. Pilot persistence ships as JSON snapshots
+to an attached disk (`DATA_DIR`); the Postgres swap is defined in
+`infra/migrations/000_init.sql` as the scale-up path.
+
