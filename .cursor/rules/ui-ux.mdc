@@ -1,0 +1,5 @@
+---
+description: Use ui-ux-pro-max skill for all UI work
+alwaysApply: true
+---
+See AGENTS.md. Query `python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system|--domain <d>|--stack <s>` before any UI/UX decision.
